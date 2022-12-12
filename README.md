@@ -47,10 +47,11 @@ Se debe instalar  pyautogui
 ```bash
   pip install pyautogui   
 ```
-## Acknowledgements
+## Autores
 
+Ramiro Molin - ramiro.molin@ing.austral.edu.ar
 
-## Authors
+Mariano Narbais  -  mariano.narbais@ing.austral.edu.ar
 
-- [@octokatherine](https://www.github.com/octokatherine)
+Ignacio soria - ignacio.soria@ing.austral.edu.ar
 
