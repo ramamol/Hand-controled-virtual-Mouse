@@ -1,0 +1,362 @@
+import cv2
+import mediapipe as mp
+import math
+import time
+import ctypes
+import pyautogui
+from datetime import datetime
+
+
+
+mp_drawing = mp.solutions.drawing_utils               #Para realizar los puntos y lineas en la mano
+mp_drawing_styles = mp.solutions.drawing_styles       #Para definir el estilo de los dibujos
+mp_hands = mp.solutions.hands                         #Utilizar las distintas funciones de mediapipe para manos
+
+# For webcam input:
+cap = cv2.VideoCapture(0)
+
+#landmarks
+        
+cero = mp_hands.HandLandmark.WRIST
+uno = mp_hands.HandLandmark.THUMB_CMC
+dos  = mp_hands.HandLandmark.THUMB_MCP
+tres = mp_hands.HandLandmark.THUMB_IP
+cuatro = mp_hands.HandLandmark.THUMB_TIP
+cinco = mp_hands.HandLandmark.INDEX_FINGER_MCP
+seis = mp_hands.HandLandmark.INDEX_FINGER_PIP
+siete = mp_hands.HandLandmark.INDEX_FINGER_DIP
+ocho = mp_hands.HandLandmark.INDEX_FINGER_TIP
+nueve = mp_hands.HandLandmark.MIDDLE_FINGER_MCP
+diez = mp_hands.HandLandmark.MIDDLE_FINGER_PIP
+once = mp_hands.HandLandmark.MIDDLE_FINGER_DIP
+doce = mp_hands.HandLandmark.MIDDLE_FINGER_TIP
+trece= mp_hands.HandLandmark.RING_FINGER_MCP
+catorce= mp_hands.HandLandmark.RING_FINGER_PIP
+dieciseis= mp_hands.HandLandmark.RING_FINGER_TIP
+diecisiete = mp_hands.HandLandmark.PINKY_MCP
+dieciocho= mp_hands.HandLandmark.PINKY_PIP
+veinte = mp_hands.HandLandmark.PINKY_TIP
+
+#flags
+
+prueba = 1
+
+
+def get_distancia(punto1, punto2 ):
+    dist = (hand_landmarks.landmark[punto1].x -hand_landmarks.landmark[punto2].x) ** 2
+    dist += (hand_landmarks.landmark[punto1].y - hand_landmarks.landmark[punto2].y) ** 2
+    dist = math.sqrt(dist)
+
+    return dist
+
+def get_signed_dist(punto1, punto2):
+    sign = -1
+    if hand_landmarks.landmark[punto1].y < hand_landmarks.landmark[punto2].y:
+        sign = 1
+    dist = (hand_landmarks.landmark[punto1].x - hand_landmarks.landmark[punto2].x) ** 2
+    dist += (hand_landmarks.landmark[punto1].y - hand_landmarks.landmark[punto2].y) ** 2
+    dist = math.sqrt(dist)
+    return dist * sign
+
+
+
+def main():
+    # handmajor = HandRecog(HLabel.MAJOR)
+# #    handminor = HandRecog(HLabel.MINOR)
+    # if handmajor == 1:
+    
+
+        prueba = 1
+        
+        if pulgar_levantado():
+            # print(f'Contador : {contador_segundos}')
+            
+             
+            if mayor_arriba():
+
+                if indice_abajo() and (prueba == 1):
+                  
+                  prueba  = 0
+                  pyautogui.click(button='left', clicks=1)
+                  time.sleep(2)
+                  # contador_segundos = datetime.now().second 
+                  
+                    
+                  print("ejecutar Click") 
+                  
+                  
+                elif mano_abierta():
+                  print("screenshot")
+                  
+                  
+                  im2 = pyautogui.screenshot('my_screenshot.png')
+                  im2.save('my_screenshot.png')  
+                  
+                  time.sleep(2)
+                  # #mover_cursor()
+                  # if cv2.waitKey(5) & 0xFF == 90:
+                    
+                  #   cv2.destroyAllWindows()
+                    
+                  
+                elif victoria():
+                  print("click derecho") 
+                  pyautogui.rightClick()
+                  time.sleep(2)
+                  
+                
+            else:
+              if indice_mayor_abajo():
+                  print("Doble click")
+                  pyautogui.click(button='left', clicks=2)
+                  time.sleep(2)
+                     
+        elif indice_levantado():
+            print('mantener pinchado')
+            
+            mover_cursor()
+            pyautogui.mouseDown(button='left') 
+            
+        
+        elif movercursor():
+          print("Mirá mama muevo el mouse")
+          mover_cursor()
+          
+        elif scrollear():
+          pos_landmark = (hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_MCP].y)
+          x , y = dim_pantalla()
+          pos_landmark_enPantalla = translate (pos_landmark, 0.02 , 0.9 , 0, y )
+          if (pos_landmark_enPantalla > y*0.8): 
+             print(f' SCROL PARA ABAJO {pos_landmark_enPantalla}')
+             pyautogui.scroll(-10)
+             
+          elif ( pos_landmark_enPantalla < y-y*0.8):
+            print(f' SCROLl PARA ARRIBAAAAAA {pos_landmark_enPantalla}')
+            pyautogui.scroll(10)
+        
+          
+          
+
+# #Definimos
+def mover_cursor():
+  pos_landmark_x = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x 
+          
+  pos_landmark_y = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y
+  x1 , y1 = dim_pantalla()
+  
+  pos_pantalla_x = translate (pos_landmark_x, 0.2, 0.8 , x1, 0 )
+  pos_pantalla_y = translate (pos_landmark_y, 0.2 , 0.6 , 0, y1 )
+  
+  
+  pyautogui.moveTo(pos_pantalla_x, pos_pantalla_y)
+  
+  return pos_pantalla_x, pos_pantalla_y 
+  
+  
+def pulgar_levantado():
+  pulgarcito = get_distancia(cinco,cuatro)
+  parametro_1 = get_distancia(cinco,cero)
+  prueba_abertura = pulgarcito/parametro_1
+  #print(prueba_abertura) 
+  if (prueba_abertura > 0.5):
+      
+      return True
+
+# def prueba_de_tiempo():
+#   prueba_segundos = datetime.now().second
+#   if (contador_segundos + 2 < prueba_segundos):
+#     return True
+  
+    
+def mayor_arriba():
+  maryor_levantado = get_distancia(doce, nueve)
+  parametro_1 = get_distancia(cinco,cero)
+  prueba_levantado = maryor_levantado/parametro_1
+  
+  if (prueba_levantado > 0.9):
+    # print(f'Mayor Levantado :  {prueba_levantado}')
+    # #time.sleep(3)
+    
+    #print(f'--------------------------')
+    return True
+ 
+    
+def indice_abajo():
+  bajar_indice = get_distancia(ocho, cinco)
+  parametro_1 = get_distancia(cinco,cero)
+  prueba_indice = bajar_indice/parametro_1
+  
+  if (prueba_indice < 0.31):
+    # print(f'prueba_indice  :  {prueba_indice}')
+    # #time.sleep(3)
+    
+    #print(f'--------------------------')
+    return True
+  
+def mano_abierta():
+  anular_abierto = get_distancia(dieciseis,trece)
+  chico_arriba = get_distancia(veinte,diecisiete)
+  parametro_1 = get_distancia(cinco,cero)
+  
+  prueba_1 = anular_abierto/parametro_1
+  prueba_2 =  chico_arriba/ parametro_1
+  
+  wrist = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST].y
+  
+  if (prueba_2 > 0.68) and (prueba_1>  0.8) and (wrist < 0.92 ):
+    
+    #print(f'prueba_1 {prueba_1}')
+    #print(f'prueba_2 {prueba_2}')
+    
+    #print(f'cero {wrist}')
+    time.sleep(2)
+    
+    return True
+
+def victoria():
+  
+  parametro_1 = get_distancia(cinco,cero)
+  victoria = get_distancia(doce,ocho)/parametro_1
+  victoria2 = get_distancia(diez,seis)/parametro_1
+  indicelevantado1=get_signed_dist(ocho,siete)
+  
+  
+  
+  
+  if (victoria > 0.55) and (victoria2 > 0.32) and (indicelevantado1 > 0):
+    
+    # print(f'prueba_1 {prueba_1}')
+    # print(victoria2)
+    return True
+
+def indice_mayor_abajo():
+  
+  parametro_1 = get_distancia(cinco, cero)
+  
+  dedosjutnos = get_distancia(doce,ocho)/parametro_1
+  mayor_abajo = get_distancia(doce,nueve)/parametro_1
+  indice_abajo = get_distancia(ocho, cinco)/parametro_1
+  
+  if (dedosjutnos < 0.2):
+        
+    if (mayor_abajo < 0.4) :
+      return True
+
+def indice_levantado():
+  
+  parametro_1 = get_distancia(cinco, cero)
+  dedosjuntos = get_distancia (doce, ocho) /  parametro_1
+  pulgar_guardado = get_distancia (cinco, cuatro) /parametro_1
+  indicelevantado=get_signed_dist(seis,cinco)
+  indicelevantado1=get_signed_dist(ocho,seis)
+  
+  mayorabajo=get_signed_dist(doce,diez)
+  anularbajado=get_signed_dist(dieciseis, catorce)
+  meñiquebajado=get_signed_dist(veinte, dieciocho)
+
+  if (pulgar_guardado < 0.3)  and (indicelevantado>0) and (indicelevantado1>0) and  (mayorabajo<0) and (anularbajado<0) and (meñiquebajado<0):
+      # print(f'pincho { anularbajado }')
+      return True
+  
+  
+def movercursor():
+      
+  parametro_1 = get_distancia(cinco, cero)
+  dedosjuntos = get_distancia (doce, ocho) /  parametro_1
+  pulgar_guardado = get_distancia (cinco, cuatro) /parametro_1
+  indicelevantado=get_signed_dist(seis,cinco)
+  indicelevantado1=get_signed_dist(ocho,seis)
+  mayorlevantado=get_signed_dist(diez,nueve)
+  mayorlevantado1=get_signed_dist(doce,diez)
+  anularbajado=get_signed_dist(dieciseis, catorce)
+  meñiquebajado=get_signed_dist(veinte, dieciocho)
+
+  if (pulgar_guardado < 0.3) and (dedosjuntos < 0.2) and (indicelevantado>0) and (indicelevantado1>0) and (mayorlevantado>0) and (mayorlevantado1>0) and (anularbajado<0) and (meñiquebajado<0):
+      # print(f'cursor en movimiento { anularbajado }')
+      return True
+
+def scrollear():
+      
+  parametro_1 = get_distancia(cinco, cero)
+  
+  pulgar_guardado = get_distancia (cinco, cuatro) /parametro_1
+  indicelevantado=get_signed_dist(seis,cinco)/parametro_1
+  indicelevantado1=get_signed_dist(ocho,seis)/parametro_1
+  mayorlevantado=get_signed_dist(diez,nueve)/parametro_1
+  mayorlevantado1=get_signed_dist(doce,diez)/parametro_1
+  anularbajado=get_signed_dist(dieciseis, catorce)/parametro_1
+  meñiquebajado=get_signed_dist(veinte, dieciocho)/parametro_1
+  
+  
+
+  if (pulgar_guardado < 0.3)  and (indicelevantado<0.4) and (indicelevantado1<0) and (mayorlevantado<0.4) and (mayorlevantado1<0) and (anularbajado<0) and (meñiquebajado<0):
+  #     print(f'scrollear { scrollear }')
+      return True  
+    
+    
+    
+  
+def dim_pantalla():
+  
+  user32 = ctypes.windll.user32
+  user32.SetProcessDPIAware()
+  ancho, alto = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+  return ancho, alto 
+
+def translate(value, leftMin, leftMax, rightMin, rightMax):
+    # Figure out how 'wide' each range is
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+
+    # Convert the left range into a 0-1 range (float)
+    valueScaled = float(value - leftMin) / float(leftSpan)
+
+    # Convert the 0-1 range into a value in the right range.
+    return rightMin + (valueScaled * rightSpan)
+
+
+  
+  
+  
+  
+  
+
+with mp_hands.Hands(
+    max_num_hands=1,
+    model_complexity=0,
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5) as hands:
+  while cap.isOpened():
+    success, image = cap.read()
+    if not success:
+      print("Ignoring empty camera frame.")
+      # If loading a video, use 'break' instead of 'continue'.
+      continue
+
+    # To improve performance, optionally mark the image as not writeable to
+    # pass by reference.
+    image.flags.writeable = False
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    results = hands.process(image)
+
+    # Draw the hand annotations on the image.
+    image.flags.writeable = True
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    # print(results.multi_hand_landmarks)
+    
+    if results.multi_hand_landmarks:
+      for hand_landmarks in results.multi_hand_landmarks:
+        mp_drawing.draw_landmarks(
+            image,
+            hand_landmarks,
+            mp_hands.HAND_CONNECTIONS,
+            mp_drawing_styles.get_default_hand_landmarks_style(),
+            mp_drawing_styles.get_default_hand_connections_style())
+           
+      main()
+      
+    # Flip the image horizontally for a selfie-view display.
+    cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+    if cv2.waitKey(5) & 0xFF == 27:
+      break
+cap.release()
